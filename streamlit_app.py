@@ -160,8 +160,8 @@ st.markdown(
         --verde-oscuro: #08462c;
         --dorado: #c9a227;
     }
-    .stApp {
-        background-color: #f7f8f6;
+    .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+        background-color: #f7f8f6 !important;
     }
     /* Ocultar el título y ancho por defecto de Streamlit */
     #MainMenu, footer {visibility: hidden;}
@@ -188,10 +188,16 @@ st.markdown(
         font-size: 0.9rem;
     }
 
-    /* Burbujas de chat */
+    /* Burbujas de chat: fondo blanco y letra oscura forzados, siempre legible */
     div[data-testid="stChatMessage"] {
+        background-color: #ffffff !important;
+        border: 1px solid #e0e3e1;
         border-radius: 14px;
-        padding: 0.3rem 0.4rem;
+        padding: 0.75rem 1rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    div[data-testid="stChatMessage"] * {
+        color: #1a1a1a !important;
     }
     div[data-testid="stChatMessageAvatarUser"] {
         background-color: var(--dorado) !important;
