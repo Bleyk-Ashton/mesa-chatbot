@@ -5,7 +5,11 @@ import numpy as np
 import re
 from sentence_transformers import SentenceTransformer
 
-st.set_page_config(page_title="Asistente Mesa Estratégica de Servicios", page_icon="🎓")
+st.set_page_config(
+    page_title="Asistente Mesa Estratégica de Servicios - Externado",
+    page_icon="logo_externado.png",
+    layout="centered",
+)
 
 # ------------------------------------------------------------
 # Carga (cacheada: solo se ejecuta una vez, aunque muchos usuarios entren)
@@ -51,11 +55,11 @@ REGLAS_CATEGORIA = [
     (r"educaci[oó]n estrella", "Educación Estrella"),
     (r"me devolvieron|devolvieron mi solicitud|qu[eé] debo corregir|nota cr[eé]dito|reembolso|anulaci[oó]n de factura",
      "Devoluciones y correcciones"),
-    (r"base(s)? de datos jur[ií]dic|banco(s)? de datos jur[ií]dic|credenciales.{0,15}jur[ií]dic",
+    (r"base(s)? de datos (jur[ií]dic|legal)|banco(s)? de datos (jur[ií]dic|legal)|credenciales.{0,15}(jur[ií]dic|legal)",
      "Bancos de datos jurídicos"),
     (r"\bcarn[eé]t?\b", "Carné digital"),
     (r"\bbloqueo\b|bloqueada|bloqueado", "Bloqueos financieros"),
-    (r"autenticador|autentificador|doble factor|segundo factor|\bMFA\b|c[oó]digo.{0,15}(no llega|no me llega)",
+    (r"autenticador|autentificador|doble factor|segundo factor|\bMFA\b|c[oó]digo.{0,15}(no llega|no me llega|verificaci[oó]n)",
      "Restablecimiento del doble factor"),
     (r"contrase[nñ]a.{0,15}correo|correo.{0,15}contrase[nñ]a", "Acceso y recuperación del correo institucional"),
     (r"whatsapp", "WhatsApp y canales institucionales"),
@@ -64,6 +68,20 @@ REGLAS_CATEGORIA = [
     (r"aula virtual|\bava\b", "Integración y aulas académicas"),
     (r"multa|pr[eé]stamo.{0,15}(libro|biblioteca)|libro.{0,15}(vencido|atraso)|proactivanet",
      "Proactivanet"),
+    # --- Nuevas: categorías que dependían solo del embedding (agregadas tras el lote de pruebas) ---
+    (r"derechos de grado|pago de grado|recibo.{0,15}grado|pagar.{0,15}graduarme|graduarme.{0,15}pagar|"
+     r"pago.{0,20}grado.{0,15}(rechazado|no lleg[oó]|confirmaci[oó]n)",
+     "Pago de derechos de grado"),
+    (r"certificado.{0,15}(valor|financiero|pagado)|valor neto|cuanto.{0,15}he pagado|certificado.{0,15}pagos",
+     "Certificados financieros"),
+    (r"certificado de (notas|estudio|t[ií]tulo)|constancia.{0,20}(materia|curso|estudio)|certificaci[oó]n.{0,15}acad[eé]mic",
+     "Certificados académicos"),
+    (r"orden de matr[ií]cula|renovar.{0,15}matr[ií]cula|matr[ií]cula.{0,15}(equivocad|error|mal)",
+     "Matrícula y órdenes de matrícula"),
+    (r"orden de pago|fraccionar|pasarela de pago|pago en l[ií]nea|\bPSE\b|no me deja pagar|"
+     r"pago (rechazado|no disponible)|no encuentro (la )?orden|link.{0,10}pago|recibo.{0,10}pago|"
+     r"cuanto.{0,15}(debo )?pagar|precio.{0,15}(semestre|matr[ií]cula)|descuento",
+     "Órdenes de pago"),
 ]
 
 SALUDOS_Y_RUIDO = {
@@ -132,10 +150,101 @@ def responder(pregunta_usuario):
     return f"**{categoria_ganadora}**\n\n{respuesta}"
 
 # ------------------------------------------------------------
-# Interfaz de chat
+# Interfaz de chat — con identidad visual Universidad Externado de Colombia
 # ------------------------------------------------------------
-st.title("🎓 Asistente Mesa Estratégica de Servicios")
-st.caption("Escribe tu solicitud (correo, matrícula, pagos, certificados, etc.)")
+st.markdown(
+    """
+    <style>
+    :root {
+        --verde-externado: #0b5e3c;
+        --verde-oscuro: #08462c;
+        --dorado: #c9a227;
+    }
+    .stApp {
+        background-color: #f7f8f6;
+    }
+    /* Ocultar el título y ancho por defecto de Streamlit */
+    #MainMenu, footer {visibility: hidden;}
+
+    .encabezado-uec {
+        background: linear-gradient(135deg, var(--verde-externado) 0%, var(--verde-oscuro) 100%);
+        padding: 1.4rem 1.8rem;
+        border-radius: 14px;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    }
+    .encabezado-uec h1 {
+        color: white;
+        font-size: 1.5rem;
+        margin: 0;
+        line-height: 1.25;
+    }
+    .encabezado-uec p {
+        color: #e3ecE7;
+        margin: 0.2rem 0 0 0;
+        font-size: 0.9rem;
+    }
+
+    /* Burbujas de chat */
+    div[data-testid="stChatMessage"] {
+        border-radius: 14px;
+        padding: 0.3rem 0.4rem;
+    }
+    div[data-testid="stChatMessageAvatarUser"] {
+        background-color: var(--dorado) !important;
+    }
+    div[data-testid="stChatMessageAvatarAssistant"] {
+        background-color: var(--verde-externado) !important;
+    }
+
+    /* Caja de texto de entrada */
+    div[data-testid="stChatInput"] textarea {
+        border: 2px solid var(--verde-externado) !important;
+        border-radius: 10px !important;
+    }
+
+    /* Botón de enviar */
+    button[data-testid="stChatInputSubmitButton"] {
+        background-color: var(--verde-externado) !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+col_logo1, col_titulo, col_logo2 = st.columns([1, 4, 1])
+with col_logo1:
+    st.image("logo_externado.png", width=70)
+with col_titulo:
+    st.markdown(
+        """
+        <div class="encabezado-uec" style="background:none; box-shadow:none; padding:0.2rem 0;">
+            <div>
+                <h1 style="color:#0b5e3c;">Universidad Externado de Colombia</h1>
+                <p style="color:#555;">Asistente Virtual · Mesa Estratégica de Servicios</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+with col_logo2:
+    st.image("logo_mes.png", width=90)
+
+st.markdown(
+    """
+    <div class="encabezado-uec">
+        <div>
+            <h1>👋 ¿En qué te podemos ayudar hoy?</h1>
+            <p>Escribe tu solicitud: correo, matrícula, pagos, certificados, carné digital, entre otros.</p>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 if "historial" not in st.session_state:
     st.session_state.historial = []
