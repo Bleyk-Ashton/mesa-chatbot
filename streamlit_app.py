@@ -182,9 +182,20 @@ st.markdown(
     }
     /* Centrar y limitar el contenido para que no se vea perdido en pantallas anchas */
     .block-container {
-        max-width: 950px;
+        max-width: 1100px;
         margin: 0 auto;
         padding-top: 2rem;
+    }
+    /* El cuadro de texto de abajo vive fuera del block-container por defecto: lo igualamos al mismo ancho */
+    [data-testid="stBottomBlockContainer"],
+    [data-testid="stChatInput"],
+    .stChatFloatingInputContainer {
+        max-width: 1100px !important;
+        margin: 0 auto !important;
+    }
+    /* Tamaño de letra base un poco más grande */
+    html, body, p, span, label, li, .stMarkdown, [data-testid="stChatMessageContent"] {
+        font-size: 1.05rem;
     }
     /* Ocultar el título y ancho por defecto de Streamlit */
     #MainMenu, footer {visibility: hidden;}
@@ -262,7 +273,7 @@ st.markdown(
 
 col_logo1, col_titulo, col_logo2 = st.columns([1, 4, 1])
 with col_logo1:
-    st.image("logo_externado.png", width=70)
+    st.image("logo_externado.png", width=130)
 with col_titulo:
     st.markdown(
         """
@@ -276,7 +287,7 @@ with col_titulo:
         unsafe_allow_html=True,
     )
 with col_logo2:
-    st.image("logo_mes.png", width=90)
+    st.image("logo_mes.png", width=170)
 
 st.markdown(
     """
