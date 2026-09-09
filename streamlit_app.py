@@ -240,6 +240,9 @@ st.markdown(
     }
     div[data-testid="stChatMessageAvatarUser"], div[data-testid="stChatMessageAvatarAssistant"] {
         background-color: transparent !important;
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 1.6rem !important;
     }
 
     /* Caja de texto de entrada */
@@ -291,20 +294,17 @@ st.markdown(
 if "historial" not in st.session_state:
     st.session_state.historial = []
 
-with st.container(border=True):
+chat_box = st.container(border=True)
+
+pregunta = st.chat_input("Escribe tu solicitud aquí...")
+if pregunta:
+    st.session_state.historial.append(("user", pregunta))
+    respuesta = responder(pregunta)
+    respuesta = corregir_tildes(respuesta)
+    st.session_state.historial.append(("assistant", respuesta))
+
+with chat_box:
     for rol, mensaje in st.session_state.historial:
         avatar = "🧑" if rol == "user" else "🎓"
         with st.chat_message(rol, avatar=avatar):
             st.markdown(mensaje)
-
-    pregunta = st.chat_input("Escribe tu solicitud aquí...")
-    if pregunta:
-        with st.chat_message("user", avatar="🧑"):
-            st.markdown(pregunta)
-        st.session_state.historial.append(("user", pregunta))
-
-        respuesta = responder(pregunta)
-        respuesta = corregir_tildes(respuesta)
-        with st.chat_message("assistant", avatar="🎓"):
-            st.markdown(respuesta)
-        st.session_state.historial.append(("assistant", respuesta))
