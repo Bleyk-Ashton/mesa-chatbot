@@ -3,6 +3,7 @@ import faiss
 import pandas as pd
 import numpy as np
 import re
+import base64
 from sentence_transformers import SentenceTransformer
 
 st.set_page_config(
@@ -193,9 +194,49 @@ st.markdown(
         max-width: 1100px !important;
         margin: 0 auto !important;
     }
-    /* Tamaño de letra base un poco más grande */
+    /* Tamaño de letra base más grande */
     html, body, p, span, label, li, .stMarkdown, [data-testid="stChatMessageContent"] {
-        font-size: 1.05rem;
+        font-size: 1.15rem;
+    }
+    .titulo-uec-nombre {
+        font-family: 'Playfair Display', serif;
+        color: #0b5e3c;
+        font-size: 2.6rem;
+        font-weight: 700;
+        text-align: center;
+        margin: 0;
+        line-height: 1.25;
+    }
+    .titulo-uec-sub {
+        font-family: 'Poppins', sans-serif;
+        color: #555;
+        text-align: center;
+        font-size: 1.2rem;
+        margin: 0.3rem 0 0 0;
+    }
+    .fila-encabezado {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    .logo-externado {
+        height: 130px;
+        width: auto;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+    .logo-mes {
+        height: 90px;
+        width: auto;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+    .titulo-uec-caja {
+        flex: 1;
+        min-width: 280px;
     }
     /* Ocultar el título y ancho por defecto de Streamlit */
     #MainMenu, footer {visibility: hidden;}
@@ -213,15 +254,15 @@ st.markdown(
     .encabezado-uec h1 {
         font-family: 'Playfair Display', serif;
         color: white;
-        font-size: 1.6rem;
+        font-size: 2.1rem;
         margin: 0;
         line-height: 1.3;
     }
     .encabezado-uec p {
         font-family: 'Poppins', sans-serif;
         color: #e3ecE7;
-        margin: 0.2rem 0 0 0;
-        font-size: 0.9rem;
+        margin: 0.3rem 0 0 0;
+        font-size: 1.15rem;
     }
 
     /* Tipografía general de la app (excluye íconos para no romperlos) */
@@ -271,24 +312,26 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-col_logo1, col_titulo, col_logo2 = st.columns([1, 4, 1])
-with col_logo1:
-    st.image("logo_externado.png", width=130)
-with col_titulo:
-    st.markdown(
-        """
-        <div class="encabezado-uec" style="background:none; box-shadow:none; padding:0.2rem 0;">
-            <div>
-                <h1 style="color:#0b5e3c;">Universidad Externado de Colombia</h1>
-                <p style="color:#555;">Asistente Virtual · Mesa Estratégica de Servicios</p>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-with col_logo2:
-    st.image("logo_mes.png", width=170)
+def imagen_base64(ruta):
+    with open(ruta, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
+logo_externado_b64 = imagen_base64("logo_externado.png")
+logo_mes_b64 = imagen_base64("logo_mes.png")
+
+st.markdown(
+    f"""
+    <div class="fila-encabezado">
+        <img src="data:image/png;base64,{logo_externado_b64}" class="logo-externado">
+        <div class="titulo-uec-caja">
+            <p class="titulo-uec-nombre">Universidad Externado de Colombia</p>
+            <p class="titulo-uec-sub">Asistente Virtual · Mesa Estratégica de Servicios</p>
+        </div>
+        <img src="data:image/png;base64,{logo_mes_b64}" class="logo-mes">
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 st.markdown(
     """
     <div class="encabezado-uec">
