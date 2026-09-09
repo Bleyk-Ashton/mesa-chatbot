@@ -213,9 +213,18 @@ st.markdown(
         font-size: 0.9rem;
     }
 
-    /* Tipografía general de la app */
-    html, body, [data-testid="stAppViewContainer"] * {
+    /* Tipografía general de la app (excluye íconos para no romperlos) */
+    html, body, p, span, label, li, .stMarkdown, [data-testid="stChatMessageContent"] {
         font-family: 'Poppins', sans-serif;
+    }
+
+    /* Contenedor tipo tarjeta para el chat */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #ffffff;
+        border: 1.5px solid #d7dbd8 !important;
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
 
     /* Burbujas de chat: fondo blanco y letra oscura forzados, siempre legible */
@@ -229,11 +238,8 @@ st.markdown(
     div[data-testid="stChatMessage"] * {
         color: #1a1a1a !important;
     }
-    div[data-testid="stChatMessageAvatarUser"] {
-        background-color: var(--dorado) !important;
-    }
-    div[data-testid="stChatMessageAvatarAssistant"] {
-        background-color: var(--verde-externado) !important;
+    div[data-testid="stChatMessageAvatarUser"], div[data-testid="stChatMessageAvatarAssistant"] {
+        background-color: transparent !important;
     }
 
     /* Caja de texto de entrada */
@@ -285,18 +291,20 @@ st.markdown(
 if "historial" not in st.session_state:
     st.session_state.historial = []
 
-for rol, mensaje in st.session_state.historial:
-    with st.chat_message(rol):
-        st.markdown(mensaje)
+with st.container(border=True):
+    for rol, mensaje in st.session_state.historial:
+        avatar = "🧑" if rol == "user" else "🎓"
+        with st.chat_message(rol, avatar=avatar):
+            st.markdown(mensaje)
 
-pregunta = st.chat_input("Escribe tu solicitud aquí...")
-if pregunta:
-    st.session_state.historial.append(("user", pregunta))
-    with st.chat_message("user"):
-        st.markdown(pregunta)
+    pregunta = st.chat_input("Escribe tu solicitud aquí...")
+    if pregunta:
+        with st.chat_message("user", avatar="🧑"):
+            st.markdown(pregunta)
+        st.session_state.historial.append(("user", pregunta))
 
-    respuesta = responder(pregunta)
-    respuesta = corregir_tildes(respuesta)
-    st.session_state.historial.append(("assistant", respuesta))
-    with st.chat_message("assistant"):
-        st.markdown(respuesta)
+        respuesta = responder(pregunta)
+        respuesta = corregir_tildes(respuesta)
+        with st.chat_message("assistant", avatar="🎓"):
+            st.markdown(respuesta)
+        st.session_state.historial.append(("assistant", respuesta))
