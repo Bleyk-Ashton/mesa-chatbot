@@ -8,7 +8,7 @@ from sentence_transformers import SentenceTransformer
 st.set_page_config(
     page_title="Asistente Mesa Estratégica de Servicios - Externado",
     page_icon="logo_externado.png",
-    layout="centered",
+    layout="wide",
 )
 
 # ------------------------------------------------------------
@@ -28,7 +28,7 @@ MARGEN_MINIMO = 0.03
 K_VECINOS = 8
 
 FUERA_DE_ALCANCE = [
-    (r"\bbeca\b|soy imparable|fundaci[oó]n carolina",
+    (r"\bbecas?\b|soy imparable|fundaci[oó]n carolina",
      "Las solicitudes de becas y ayudas económicas no se gestionan por este canal. "
      "Te voy a escalar a un agente de la Mesa para que te oriente sobre el proceso de becas."),
     (r"\bsap\b",
@@ -76,7 +76,7 @@ REGLAS_CATEGORIA = [
      "Certificados financieros"),
     (r"certificado de (notas|estudio|t[ií]tulo)|constancia.{0,20}(materia|curso|estudio)|certificaci[oó]n.{0,15}acad[eé]mic",
      "Certificados académicos"),
-    (r"orden de matr[ií]cula|renovar.{0,15}matr[ií]cula|matr[ií]cula.{0,15}(equivocad|error|mal)",
+    (r"\bmatr[ií]cula\b|orden de matr[ií]cula|renovar.{0,15}matr[ií]cula|matr[ií]cula.{0,15}(equivocad|error|mal)",
      "Matrícula y órdenes de matrícula"),
     (r"orden de pago|fraccionar|pasarela de pago|pago en l[ií]nea|\bPSE\b|no me deja pagar|"
      r"pago (rechazado|no disponible)|no encuentro (la )?orden|link.{0,10}pago|recibo.{0,10}pago|"
@@ -102,6 +102,21 @@ def es_input_no_informativo(texto):
     if len(palabras_reales) < 2:
         return True
     return False
+
+def corregir_tildes(texto):
+    """Corrige tildes que a veces se pierden en los datos históricos de correos."""
+    reemplazos = {
+        "Carne digital": "Carné digital", "carne digital": "carné digital",
+        "Bancos de datos juridicos": "Bancos de datos jurídicos",
+        "Restablecimiento del doble factor": "Restablecimiento del doble factor",
+        "Educacion Estrella": "Educación Estrella",
+        "Matricula y ordenes de matricula": "Matrícula y órdenes de matrícula",
+        "Ordenes de pago": "Órdenes de pago",
+        "Acceso y recuperacion del correo institucional": "Acceso y recuperación del correo institucional",
+    }
+    for malo, bueno in reemplazos.items():
+        texto = texto.replace(malo, bueno)
+    return texto
 
 def responder(pregunta_usuario):
     if not pregunta_usuario or not pregunta_usuario.strip():
@@ -155,13 +170,21 @@ def responder(pregunta_usuario):
 st.markdown(
     """
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap');
+
     :root {
         --verde-externado: #0b5e3c;
         --verde-oscuro: #08462c;
         --dorado: #c9a227;
     }
     .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
-        background-color: #f7f8f6 !important;
+        background: linear-gradient(180deg, #eef2ee 0%, #f7f8f6 60%, #eef2ee 100%) !important;
+    }
+    /* Centrar y limitar el contenido para que no se vea perdido en pantallas anchas */
+    .block-container {
+        max-width: 950px;
+        margin: 0 auto;
+        padding-top: 2rem;
     }
     /* Ocultar el título y ancho por defecto de Streamlit */
     #MainMenu, footer {visibility: hidden;}
@@ -177,15 +200,22 @@ st.markdown(
         box-shadow: 0 4px 14px rgba(0,0,0,0.15);
     }
     .encabezado-uec h1 {
+        font-family: 'Playfair Display', serif;
         color: white;
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         margin: 0;
-        line-height: 1.25;
+        line-height: 1.3;
     }
     .encabezado-uec p {
+        font-family: 'Poppins', sans-serif;
         color: #e3ecE7;
         margin: 0.2rem 0 0 0;
         font-size: 0.9rem;
+    }
+
+    /* Tipografía general de la app */
+    html, body, [data-testid="stAppViewContainer"] * {
+        font-family: 'Poppins', sans-serif;
     }
 
     /* Burbujas de chat: fondo blanco y letra oscura forzados, siempre legible */
@@ -266,6 +296,7 @@ if pregunta:
         st.markdown(pregunta)
 
     respuesta = responder(pregunta)
+    respuesta = corregir_tildes(respuesta)
     st.session_state.historial.append(("assistant", respuesta))
     with st.chat_message("assistant"):
         st.markdown(respuesta)
