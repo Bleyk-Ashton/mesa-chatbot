@@ -26,7 +26,7 @@ embedding_model, index, df_bot = cargar_todo()
 
 UMBRAL_CONFIANZA = 0.78
 MARGEN_MINIMO = 0.03
-K_VECINOS = 8
+K_VECINOS = 5
 
 FUERA_DE_ALCANCE = [
     (r"\bbecas?\b|soy imparable|fundaci[oó]n carolina",
